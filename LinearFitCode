@@ -103,8 +103,8 @@ plt.plot(x_train, predicted, color='blue')
 # Create a scatter plot of the data. 
 plt.scatter(x_train, y_train, marker='x', c='r') 
 
-plt.xlabel('Size (SqFt - Normalized)')
-plt.ylabel('Price (Dollars - Normalized)')
+plt.xlabel('Size (SqFt - Scaled)')
+plt.ylabel('Price (Dollars - Scaled)')
 plt.title('Linear Regression: Square Footage vs Price')
 plt.legend()
 plt.show()
