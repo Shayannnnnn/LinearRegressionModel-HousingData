@@ -1,0 +1,112 @@
+import math
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+
+def compute_gradient(x, y, w, b):     
+    m = x.shape[0]
+    dj_dw = 0
+    dj_db = 0
+    
+    for i in range(0, m):
+        f_wb = (w*x[i]) + b
+        dj_db += f_wb - y[i]
+        dj_dw += (f_wb - y[i]) * x[i]
+    dj_db = dj_db / m
+    dj_dw = dj_dw / m
+    
+    return dj_dw, dj_db
+
+def compute_cost(x, y, w, b): 
+    m = x.shape[0] 
+    total_cost = 0
+
+    for i in range (0, m):
+        f_wb = (w*x[i]) + b
+        cost = (f_wb - y[i])**2 
+        total_cost += cost
+    
+    total_cost = total_cost / (2*m)
+
+    return total_cost
+
+def compute_percentage_error(y, y_pred):
+    m = len(y)
+    total_percentage_error = 0
+    
+    for i in range(m):
+        error = abs(y[i] - y_pred[i]) / y[i] * 100
+        total_percentage_error += error
+        
+    percentage_error = total_percentage_error / m
+    return percentage_error
+
+def gradient_descent(x, y, w_in, b_in, cost_function, gradient_function, alpha, num_iters): 
+    m = len(x)
+    J_history = []
+    w_history = []
+    w = w_in  
+    b = b_in
+    
+    for i in range(num_iters):
+        dj_dw, dj_db = gradient_function(x, y, w, b )  
+        w = w - alpha * dj_dw               
+        b = b - alpha * dj_db               
+
+        if i<100000:      
+            cost =  cost_function(x, y, w, b)
+            J_history.append(cost)
+
+        if i % math.ceil(num_iters/10) == 0:
+            w_history.append(w)
+            print(f"Iteration {i:4}: Cost {float(J_history[-1]):8.2f}   ")
+        
+    return w, b, J_history, w_history
+
+# Read the CSV file into a DataFrame
+data = pd.read_csv("house-prices.csv")
+
+# Extracting features and target variable
+x_train = data['SqFt']
+y_train = data['Price']
+
+# Rescaling 
+x_train /= 1000
+y_train /= 100000
+
+x_train.values.reshape(-1, 1)  # Reshape to a column vector
+
+# Train the model
+w, b, _, _ = gradient_descent(x_train, y_train, 0, 0, compute_cost, compute_gradient, 0.01, 100)
+
+print(f"y[i] = {w}*x[i] + {b}")
+
+# Predicting the prices
+m = x_train.shape[0]
+predicted = np.zeros(m)
+
+for i in range(m):
+    predicted[i] = w * x_train[i] + b
+
+# Calculate the percentage error
+percentage_error = compute_percentage_error(y_train, predicted)
+print(f"Average Percentage Error: {percentage_error:.2f}%")
+
+# Plotting the data points
+plt.scatter(x_train, y_train, color='blue', label='Data Points')
+plt.plot(x_train, predicted, color='blue')
+plt.scatter(x_train, y_train, marker='x', c='r') 
+
+plt.xlabel('Size (SqFt - Normalized)')
+plt.ylabel('Price (Dollars - Normalized)')
+plt.title('Linear Regression: Square Footage vs Price')
+plt.legend()
+plt.show()
+
+# User Input
+test_input = float(input("Enter the size of your house in Square Footage: "))
+test_input /= 1000
+predicted_price =  w * test_input + b
+predicted_price *= 100000
+
+print(f"The predicted price of your house is {predicted_price}.")
