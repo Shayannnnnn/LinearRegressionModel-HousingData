@@ -1,0 +1,110 @@
+import math
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+
+def compute_gradient(x, y, w, b):     
+    # Number of training examples
+    m = x.shape[0]
+    
+    # You need to return the following variables correctly
+    dj_dw = 0
+    dj_db = 0
+    
+    for i in range(0, m):
+        f_wb = (w*x[i]) + b
+        dj_db += f_wb - y[i]
+        dj_dw += (f_wb - y[i]) * x[i]
+    dj_db = dj_db / m
+    dj_dw = dj_dw / m
+    
+    return dj_dw, dj_db
+
+def compute_cost(x, y, w, b): 
+    # number of training examples
+    m = x.shape[0] 
+    
+    # You need to return this variable correctly
+    total_cost = 0
+
+    for i in range (0, m):
+        f_wb = (w*x[i]) + b
+        cost = (f_wb - y[i])**2 
+        total_cost += cost
+    
+    total_cost = total_cost / (2*m)
+
+    return total_cost
+
+def gradient_descent(x, y, w_in, b_in, cost_function, gradient_function, alpha, num_iters): 
+
+    # number of training examples
+    m = len(x)
+    
+    # An array to store cost J and w's at each iteration — primarily for graphing later
+    J_history = []
+    w_history = []
+    w = w_in  #avoid modifying global w within function
+    b = b_in
+    
+    for i in range(num_iters):
+
+        # Calculate the gradient and update the parameters
+        dj_dw, dj_db = gradient_function(x, y, w, b )  
+
+        # Update Parameters using w, b, alpha and gradient
+        w = w - alpha * dj_dw               
+        b = b - alpha * dj_db               
+
+        # Save cost J at each iteration
+        if i<100000:      # prevent resource exhaustion 
+            cost =  cost_function(x, y, w, b)
+            J_history.append(cost)
+
+        # Print cost every at intervals 10 times or as many iterations if < 10
+        if i% math.ceil(num_iters/10) == 0:
+            w_history.append(w)
+            print(f"Iteration {i:4}: Cost {float(J_history[-1]):8.2f}   ")
+        
+    return w, b, J_history, w_history #return w and J,w history for graphing
+
+
+# Read the CSV file into a DataFrame
+data = pd.read_csv("house-prices.csv")
+
+# Extracting features and target variable
+
+x_train = data['SqFt']
+y_train = data['Price']
+
+# rescaling 
+x_train /= 1000
+y_train /= 100000
+
+x_train.values.reshape(-1, 1)  # Reshape to a column vector
+
+w, b, _, _ = gradient_descent(x_train, y_train, 0, 0, compute_cost, compute_gradient, 0.01, 100)
+
+print(f"y[i] = {w}*x[i] + {b}")
+
+# Plotting the data points
+plt.scatter(x_train, y_train, color='blue', label='Data Points')
+
+m = x_train.shape[0]
+predicted = np.zeros(m)
+
+for i in range(m):
+    predicted[i] = w * x_train[i] + b
+
+print(f"The predicted price of your house is {predicted_price}.")
+# Plotting the linear regression line
+plt.plot(x_train, predicted, color='blue')
+
+# Create a scatter plot of the data. 
+plt.scatter(x_train, y_train, marker='x', c='r') 
+
+plt.xlabel('Size (SqFt - Normalized)')
+plt.ylabel('Price (Dollars - Normalized)')
+plt.title('Linear Regression: Square Footage vs Price')
+plt.legend()
+plt.show()
